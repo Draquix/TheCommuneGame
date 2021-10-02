@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/reset.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <title>Draq Rogue Online</title>
+</head>
+<body>
+    <header>
+        <h1>Welcome To Draq Rogue Online</h1>
+    </header>
+    <main>
+        <form class="login-form">
+            <label class="login-label">
+                Enter Username:
+                <input type="text" id="name">
+            </label>
+            <label class="login-label">
+                Enter Passphrase:
+                <input type="text" id="passphrase">
+            </label>
+            <input type="submit" class="login-submit" value="login">
+        </form>
+        <div class="screen">
+            <canvas id="game" width="500" height="500"></canvas>
+            <ul id="scrolltips"></ul>
+            <div class="screen">
+                <div id="interactions"></div>
+                <div id="char-display"></div>
+            </div>
+        </div>
+        <div>
+            <p> Stats: </p>
+            <ul id="stats">
+
+            </ul>
+        </div>
+        <form class="chat-form">
+            <label class="chat-label">
+                Enter a message:
+                <input type="text" class="chat-input">
+            </label>
+            <input type="submit" class="chat-submit" value="enter">
+        </form>
+        <div class="chat-dump"></div>
+
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "name": "thecommunegame",
+  "version": "1.0.0",
+  "description": "A grinder RPG with a focus on multiplaying and automation to run a small community with a roguelike twist.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Draquix/TheCommuneGame.git"
+  },
+  "keywords": [
+    "Grind",
+    "RPG",
+    "multiplay",
+    "automation",
+    "economy"
+  ],
+  "author": "Daniel Rogahn",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Draquix/TheCommuneGame/issues"
+  },
+  "homepage": "https://github.com/Draquix/TheCommuneGame#readme",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "http": "0.0.1-security",
+    "path": "^0.12.7",
+    "socket.io": "^4.2.0"
+  }
+}

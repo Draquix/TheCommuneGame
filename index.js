@@ -39,7 +39,7 @@ io.on('connection', socket => {
     console.log('Some client connected...');
     socket.id = Math.random();
     SOCKET_LIST[socket.id] = socket;
-    socket.emit('handshaking', {id: socket.id});
+    socket.emit('handshaking', {id: socket.id},MapBox,LegendBox);
     //when a user logs into the client, a character is created on the server and
     //the object is sent to the client for display.
     socket.on('login', user => {
@@ -55,6 +55,43 @@ io.on('connection', socket => {
     socket.on('chat', message => {
         console.log('message from client: ', message);
         io.emit('chat', {message, id: socket.id});
+    });
+    //below receives the keypress for w,a,s,d movement.
+    socket.on('key press', data => {
+        player = PLAYER_LIST[socket.id];
+        if(data.inputDir==='left'){
+            let stepTile = MapBox[player.map][player.ypos-1][player.xpos-1];
+            if(stepTile==='.'||stepTile===","){
+                player.xpos--;
+            } else {
+                player.message = "Collision with " + stepTile;
+            }
+        }
+        if(data.inputDir==='right'){
+            let stepTile = MapBox[player.map][player.ypos-1][player.xpos+1];
+            if(stepTile==='.'||stepTile===","){
+                player.xpos++;
+            } else {
+                player.message = "Collision with " + stepTile;
+            }
+        }
+        if(data.inputDir==='up'){
+            let stepTile = MapBox[player.map][player.ypos-2][player.xpos];
+            if(stepTile==="."||stepTile===","){
+                player.ypos--;
+            } else {
+                player.message = "Collision with " + stepTile;
+            }
+        }
+        if(data.inputDir==='down'){
+            let stepTile = MapBox[player.map][player.ypos][player.xpos];
+            if(stepTile==="."||stepTile===","){
+                player.ypos++;
+            } else {
+                player.message = "Collision with " + stepTile;
+            }
+        }
+        console.log(player.message);
     });
 });
 
@@ -84,7 +121,8 @@ setInterval(function() {
             name:player.name,
             stats:player.stats,
             xpos:player.xpos,
-            ypos:player.ypos
+            ypos:player.ypos,
+            message:player.message
         });
         let socket = SOCKET_LIST[i];
         socket.emit('draw player',{pack, id: socket.id});

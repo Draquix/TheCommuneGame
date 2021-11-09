@@ -9,7 +9,6 @@
 //event handling
 
 require('dotenv').config();
-const { load } = require('dotenv');
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
@@ -48,9 +47,6 @@ io.on('connection', socket => {
         let name = user.name;
         let pass = user.passphrase;
         player = new Player(name, pass, socket.id);
-        loadInv(player.backpack);
-        loadChest(player.chest);
-        player.weightCalc();
         PLAYER_LIST[socket.id] = player;
         socket.emit('player created', player);
     });
@@ -59,15 +55,6 @@ io.on('connection', socket => {
     socket.on('chat', message => {
         console.log('message from client: ', message);
         io.emit('chat', {message, id: socket.id});
-    });
-    //if inventory is added to or taken from in client, adjust weight and player contents
-    socket.on('inventory change', data => {
-        player.backpack=data;
-        player.weightCalc();
-    });
-    //if chest is added to or taken from adjust contents
-    socket.on('chest change',data =>{
-        player.chest=data;
     });
     //below receives the keypress for w,a,s,d movement.
     socket.on('key press', data => {
@@ -78,9 +65,7 @@ io.on('connection', socket => {
                 player.xpos--;
             } else {
                 player.message = collisionMessage(stepTile);
-                player.doing = player.message;
-                player.action = true;
-                player.data.push(collisionData(stepTile,player.map,player.xpos,player.ypos,player.id));
+                player.data.push(collisionData(stepTile,player.map,player.xypos,player.ypos,player.id));
             }
         }
         if(data.inputDir==='right'){
@@ -89,9 +74,7 @@ io.on('connection', socket => {
                 player.xpos++;
             } else {
                 player.message = collisionMessage(stepTile);
-                player.doing = player.message;
-                player.action = true;
-                player.data.push(collisionData(stepTile,player.map,player.xpos,player.ypos,player.id));
+                player.data.push(collisionData(stepTile,player.map,player.xypos,player.ypos,player.id));
             }
         }
         if(data.inputDir==='up'){
@@ -100,9 +83,7 @@ io.on('connection', socket => {
                 player.ypos--;
             } else {
                 player.message = collisionMessage(stepTile);
-                player.doing = player.message;
-                player.action = true;
-                player.data.push(collisionData(stepTile,player.map,player.xpos,player.ypos,player.id));
+                player.data.push(collisionData(stepTile,player.map,player.xypos,player.ypos,player.id));
             }
         }
         if(data.inputDir==='down'){
@@ -111,25 +92,53 @@ io.on('connection', socket => {
                 player.ypos++;
             } else {
                 player.message = collisionMessage(stepTile);
-                player.doing = player.message;
-                player.action = true;
-                player.data.push(collisionData(stepTile,player.map,player.xpos,player.ypos,player.id));
+                player.data.push(collisionData(stepTile,player.map,player.xypos,player.ypos,player.id));
             }
         }
         console.log(player.message);
     });
 });
+
 //RUNTIME ENGINE - This uses a setInterval to perform actions on 'ticks'. One interval
 //is the crafting and action tick, for performing actions. The other is to update the player
 //position and see other player characters move around on the map.
 let timer = 0;
+//this is the craft and action ticker
+setInterval(function() {
+    let pack = [];
+    for (var i in PLAYER_LIST){
+        let player = PLAYER_LIST[i];
+        if(player.action===""){
+            pack.push({
+                action:false,
+                pc:player,
+                id:player.id
+            });
+            let socket = SOCKET_LIST[i];
+            socket.emit('action',{pack:pack});
+        }
+        if(player.action==="Speaking to an NPC."){
+            pack.push({
+                action:true,
+                pc:player,
+                id:player.id
+            });
+            let socket = SOCKET_LIST[i];
+            socket.emit('action',{pack:pack});
+        }
+    }
+},1200)
 //this is the drawscreen tick
 setInterval(function() {
     let pack = [];
     for (var i in PLAYER_LIST){
         let player = PLAYER_LIST[i];
         pack.push({
-            player:player
+            name:player.name,
+            stats:player.stats,
+            xpos:player.xpos,
+            ypos:player.ypos,
+            message:player.message
         });
         let socket = SOCKET_LIST[i];
         socket.emit('draw player',{pack, id: socket.id});
@@ -139,48 +148,6 @@ setInterval(function() {
         console.log(timer," ticks elapsed.");
     }
 },200);
-//this is the player action ticker
-setInterval(function() {
-    let pack = [];
-    for (var i in PLAYER_LIST){
-        let player = PLAYER_LIST[i];
-        //if doing something perform an action
-        if(player.action===true){
-            console.log('action true');
-            if(player.doing==="Speaking to an NPC."){
-                pack.push({
-                    npc:player.data[0],
-                    action:"talking",
-                    message:player.doing
-                });
-                player.data.pop();
-                player.action = false;
-                let socket = SOCKET_LIST[i];
-                socket.emit('action', pack);
-            }
-            if(player.doing==="Investigating Point of Interest."){
-                pack.push({
-                    action:'poi',
-                    message:player.doing,
-                    poi:player.data[0],
-                });
-                player.data.pop();
-                player.action = false;
-                let socket = SOCKET_LIST[i];
-                socket.emit('action',pack);
-            }
-            if(player.doing="Banking with chest storage."){
-                pack.push({
-                    action:'chest',
-                    message:player.doing,
-                });
-                player.action = false;
-                let socket = SOCKET_LIST[i];
-                socket.emit('action',pack);
-            }
-        }
-    }
-},1500);
 
 //OPERATIONAL FUNCTIONS - These are the functions that handle things happening in the game.
 //Collision Handling
@@ -208,12 +175,9 @@ function collisionMessage(tile){
     }
 }
 function collisionData(tile,map,x,y,id){
-    console.log('colliding running');
     if(tile==="P"){
         for(var i = 0; i < LegendBox[map].coordNPC.length; i++){
-            console.log('gotta p at',x,y);
             if((LegendBox[map].coordNPC[i][0]===x-1||LegendBox[map].coordNPC[i][0]===x||LegendBox[map].coordNPC[i][0]===x+2||LegendBox[map].coordNPC[i]===x+1)&&(LegendBox[map].coordNPC[i][1]===y-1||LegendBox[map].coordNPC[i][1]===y||LegendBox[map].coordNPC[i][1]===y+1||LegendBox[map].coordNPC[i][1][y+2])){
-                console.log('collision',NPCBox[i]);
                 return NPCBox[i];
             }
         }
@@ -250,44 +214,10 @@ function Player (name, passphrase, id){
     this.pressLeft = false;
     this.pressUp = false;
     this.pressDown = false;
-    this.action = false;
-    this.doing = "nothing";
+    this.action = 'none';
     this.message = 'new character created';
     this.data = [];
-    this.weightCalc = function(){
-        for(i in this.backpack){
-            this.weightLoad += this.backpack[i].weight;
-        }
-    }
     console.log("Player created by name of: ", this.name);
-    console.log("action:",this.action);
-}
-//Load Inventory of Player functions
-function loadInv(backpack){
-    let pick = new Tool("Pick",3,'Pickaxe');
-    let axe = new Tool("Axe", 3, 'Woodaxe');
-    backpack.push(pick);
-    backpack.push(axe);
-}
-function loadChest(chest){
-    for(var i=0;i<3;i++){
-        let ore1 = new Ore("copper ore",.5,.34,'copper');
-        let ore2 = new Ore("tin ore",.5,.34,'tin');
-        chest.push(ore1);
-        chest.push(ore2);
-    }
-}
-//Basic Items
-function Tool (name,weight,type){
-    this.name = name;
-    this.weight = weight;
-    this.type = type;
-}
-function Ore (name,weight,purity,type){
-    this.name = name;
-    this.weight = weight;
-    this.purity = purity;
-    this.type = type;
 }
 
 // GAME CONTENT DATA - Here is stored the maps and NPCs and other such static data.
@@ -354,7 +284,7 @@ NPCBox.push(NPC0);
 NPCBox.push(NPC1);
 POIBox.push(POI0);
 POIBox.push(POI1);
-console.log(NPCBox[0]);
+
 //With all the files loaded, the below statement causes the server to boot up and listen for client connections.
 server.listen(port, () => {
     console.log('server listening on port: ', port);

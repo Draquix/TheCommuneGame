@@ -61,17 +61,58 @@ io.on('connection', socket => {
         io.emit('chat', {message, id: socket.id});
     });
     //if inventory is added to or taken from in client, adjust weight and player contents
-    socket.on('inventory change', data => {
+    socket.on('backpack change', data => {
         player.backpack=data;
         player.weightCalc();
+        console.log('weightload',player.weightLoad);
     });
     //if chest is added to or taken from adjust contents
     socket.on('chest change',data =>{
         player.chest=data;
     });
+    socket.on('gear change left', data => {
+        console.log(data[0]);
+        player.gear.left.push(data);
+        player.gearWeightCalc();
+    });
+    socket.on('gear change right',data =>{
+        console.log(data[0]);
+        player.gear.right.push(data);
+        player.gearWeightCalc();
+    });
+    socket.on('gear change head',data => {
+        player.gear.head.push(data[0]);
+        player.gearWeightCalc();
+    });
+    socket.on('gear change torso', data => {
+        player.gear.torso.push(data[0]);
+        player.gearWeightCalc();
+    });
+    socket.on('gear change legs',data =>{
+        player.gear.torso.push(data[0]);
+        player.gearWeightCalc();
+    });
+    socket.on('gear change back',data => {
+        player.gear.back.push(data[0]);
+        player.gearWeightCalc();
+    });
+    socket.on('gear change hands', data => {
+        player.gear.hands.push(data[0]);
+        player.gearWeightCalc();
+    });
+    socket.on('gear change neck',data =>{
+        player.gear.neck.push(data[0]);
+        player.gearWeightCalc();
+    });
+    socket.on('gear change feet',data => {
+        player.gear.feet.push(data[0]);
+        player.gearWeightCalc();
+    });
+
     //below receives the keypress for w,a,s,d movement.
     socket.on('key press', data => {
         player = PLAYER_LIST[socket.id];
+        player.doing = 'Walking';
         if(data.inputDir==='left'){
             let stepTile = MapBox[player.map][player.ypos-1][player.xpos-1];
             if(stepTile==='.'||stepTile===","){
@@ -241,8 +282,21 @@ function Player (name, passphrase, id){
     };
     this.chest = [];
     this.backpack = [];
-    this.rightHand = [];
-    this.leftHand = [];
+    this.gear = {
+        left: [],
+        right: [],
+        head: [],
+        torso: [],
+        legs: [],
+        hands: [],
+        back: [],
+        neck: [],
+        feet: [],
+        rings: {
+            left: [],
+            right: []
+        }
+    };
     this.weightLimit = 20 + 10*this.stats.str;
     this.weightLoad = 0;
     this.map = 0;
@@ -255,19 +309,48 @@ function Player (name, passphrase, id){
     this.message = 'new character created';
     this.data = [];
     this.weightCalc = function(){
+        this.weightLoad = 0;
         for(i in this.backpack){
             this.weightLoad += this.backpack[i].weight;
         }
+    }
+    this.gearWeightCalc = function(){
+        if (this.gear.left.length>0)
+            this.weightLoad += this.gear.left[0].weight;
+        if (this.gear.right.length>0)
+            this.weightLoad += this.gear.right[0].weight;
+        if (this.gear.head.length>0)
+            this.weightLoad += this.gear.head[0].weight;
+        if (this.gear.torso.length>0)
+            this.weightLoad += this.gear.torso[0].weight;
+        if (this.gear.legs.length>0)
+            this.weightLoad += this.gear.legs[0].weight;
+        if (this.gear.hands.length>0)
+            this.weightLoad += this.gear.hands[0].weight;
+        if (this.gear.back.length>0)
+            this.weightLoad += this.gear.back[0].weight;
+        if (this.gear.neck.length>0)
+            this.weightLoad += this.gear.neck[0].weight;
+        if (this.gear.feet.length>0)
+            this.weightLoad += this.gear.feet[0].weight;
+        // for(i in rings.left){
+        //     this.weightLoad += this.gear.rings.left[i];
+        // }
+        // for(i in rings.right){
+        //     this.weightLoad += this.gear.rings.right[i];
+        // }
     }
     console.log("Player created by name of: ", this.name);
     console.log("action:",this.action);
 }
 //Load Inventory of Player functions
 function loadInv(backpack){
-    let pick = new Tool("Pick",3,'Pickaxe');
-    let axe = new Tool("Axe", 3, 'Woodaxe');
+    let pick = new Tool("Pick",3,'tool','ore');
+    let axe = new Tool("Axe", 3, 'tool','wood');
+    let hat = new Gear("Leather Helmet",1,'def',2,10,'head','gear');
     backpack.push(pick);
     backpack.push(axe);
+    backpack.push(hat);
 }
 function loadChest(chest){
     for(var i=0;i<3;i++){
@@ -278,15 +361,25 @@ function loadChest(chest){
     }
 }
 //Basic Items
-function Tool (name,weight,type){
+function Tool (name,weight,type,resource){
     this.name = name;
     this.weight = weight;
     this.type = type;
+    this.resource = resource;
 }
 function Ore (name,weight,purity,type){
     this.name = name;
     this.weight = weight;
     this.purity = purity;
+    this.type = type;
+}
+function Gear (name,weight,stats,mods,value,location,type){
+    this.name = name;
+    this.weight = weight;
+    this.stats = stats;
+    this.mods = mods;
+    this.value = value;
+    this.location = location;
     this.type = type;
 }
 
@@ -312,7 +405,7 @@ const legend0 ={
     NPC: ['red','green'],
     coordNPC: [[4,5],[7,8]],
     indexNPC:[0,1],
-    coordPOI: [[6,3],[10,10]],
+    coordPOI: [[6,3],[8,9]],
     indexPOI:[0,1],
     Wall: 'grey',
     floorDots: 'gray',

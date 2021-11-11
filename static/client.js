@@ -21,7 +21,6 @@ let character = {};
 let NPCBox =[];
 let MapBox = [];
 let LegendBox = [];
-
 //GAME DISPLAY FUNCTIONS
 //Character Stats Display
 function displayCharacter(){
@@ -55,18 +54,123 @@ function displayCharacter(){
     invButton.innerHTML = '<a href="javascript:displayInv();">Display Inventory</a>';
     display.appendChild(invButton);
 }
-//Inventory display function
+//Inventory display function and equip item
+function equip(num){
+    let item = character.player.backpack[num];
+    console.log("attempting to equip: ",item);
+    if (item.type==='tool' && character.player.gear.right.length===0){
+        console.log('equipping to right hand');
+        character.player.gear.right.push(item);
+        character.player.backpack.pop(item);
+        socket.emit('backpack change',character.player.backpack);
+        socket.emit('gear change right',character.player.gear.right);
+    } else if (item.type==='tool' && character.player.gear.left.length===0){
+        console.log("equipping to left hand");
+        character.player.gear.left.push(item);
+        character.player.backpack.pop(item);
+        socket.emit('backpack change',character.player.backpack);
+        socket.emit('gear change left',character.player.gear.left);
+    } else {
+        alert("You don't have any free hands...");
+    }
+    if (item.type==='gear'){
+        if (item.location==='head' && character.player.gear.head.length===0){
+            character.player.gear.head.push(item);
+            character.player.backpack.pop(item);
+            socket.emit('backpack change',character.player.backpack);
+            socket.emit('gear change head',player.character.gear.head);
+        } else {
+            alert("You're already wearing something on your head.");
+        }
+    }
+    displayInv();
+}
 function displayInv(){
     display.innerHTML = "";
     for(i in character.player.backpack){
         let item = character.player.backpack[i];
         let itemDisplay = document.createElement('p');
         itemDisplay.innerHTML = `* ${item.name} weighing ${item.weight} kgs.`;
+        if (item.type==='tool'){
+            itemDisplay.innerHTML += `<a href="javascript:equip(${i});"> Hold Tool </a>`;
+        }
+        if (item.type==='gear'){
+            itemDisplay.innerHTML += `<a href="javascript:equip(${i});"> Wear Gear </a>`;
+        }
         display.appendChild(itemDisplay);
     }
     let characterButton = document.createElement('p');
     characterButton.innerHTML = '<a href="javascript:displayCharacter();">Display Character</a>';
     display.appendChild(characterButton);
+    let equipmentButton = document.createElement('p');
+    equipmentButton.innerHTML = '<a href="javascript:displayEquipment();">Display Equipment</a>';
+    display.appendChild(equipmentButton);
+}
+//Equipment Display and unequip
+function displayEquipment(){
+    actionPanel.innerHTML = "";
+    let right = document.createElement('p');
+    if(character.player.gear.right.length>0){
+        right.innerHTML = `Held in Right Hand: ${character.player.gear.right[0].name} weighing ${character.player.gear.right[0].weight} kgs <a href="javascript:removeRight();"> Remove </a>`;
+    } else {
+        right.innerHTML = "Held in Right Hand: nothing.";
+    }
+    actionPanel.appendChild(right);
+    let head = document.createElement('p');
+    if(character.player.gear.head.length>0){
+        head.innerHTML = `On Head: ${character.player.gear.head[0].name} weighing ${character.player.gear.head[0].weight} kgs <a href="javascript:removeHead();"> Remove </a>`;
+    } else {
+        head.innerHTML = "On Head: nothing.";
+    }
+    actionPanel.appendChild(head);
+    let left = document.createElement('p');
+    if(character.player.gear.left.length>0){
+        left.innerHTML = `Held in Left Hand: ${character.player.gear.left[0].name} weighing ${character.player.gear.left[0].weight} kgs <a href="javascript:removeLeft();"> Remove </a>`;
+    } else {
+        left.innerHTML = "Held in Left Hand: nothing.";
+    }
+    actionPanel.appendChild(left);
+    let torso = document.createElement('p');
+    if (character.player.gear.torso.length>0){
+        torso.innerHTML = `On Torso: ${character.player.gear.torso[0].name} weighing ${character.player.gear.torso[0].weight} kgs <a href="javascript:removeTorso();"> Remove </a>`;
+    } else {
+        torso.innerHTML = "On Torso: nothing.";
+    }
+    actionPanel.appendChild(torso);
+    let legs = document.createElement('p');
+    if (character.player.gear.legs.length>0){
+        legs.innerHTML = `On Legs: ${character.player.gear.legs[0].name} weighing ${character.player.gear.legs[0].weight} kgs <a href="javascript:removeLegs();"> Remove </a>`;
+    } else {
+        legs.innerHTML = "On Legs: nothing.";
+    }
+    actionPanel.appendChild(legs);
+    let hands = document.createElement('p');
+    if (character.player.gear.hands.length>0){
+        hands.innerHTML = `On Hands: ${character.player.gear.hands[0].name} weighing ${character.player.gear.hands[0].weight} kgs <a href="javascript:removeHands();"> Remove </a>`;
+    } else { 
+        hands.innerHTML = "On Hands: nothing.";
+    }
+    actionPanel.appendChild(hands);
+    let back = document.createElement('p');
+    if (character.player.gear.back.length>0){
+        back.innerHTML = `On Back: ${character.player.gear.back[0].name} weighing ${character.player.gear.back[0].weight} kgs <a href="javascript:removeBack();"> Remove </a>`;
+    } else {
+        back.innerHTML = "On Back: nothing.";
+    }
+    actionPanel.appendChild(left);
+    let neck = document.createElement('p');
+    if (character.player.gear.neck.length>0){
+        neck.innerHTML = `Around Neck: ${character.player.gear.neck[0].name} weighing ${character.player.gear.neck[0].weight} kgs <a href="javascript:removeNeck();"> Remove </a>`;
+    } else {
+        neck.innerHTML = "Around Neck: nothing."
+    }
+    actionPanel.appendChild(left);
+    let doneButt = document.createElement('p');
+    doneButt.innerHTML = `<a href="javascript:clearAction();"> Done with Equipment </a>`;
+    actionPanel.appendChild(doneButt);
+}
+function clearAction (){
+     actionPanel.innerHTML = "";
 }
 //Chest display function, and moving items between
 function showChest(){
@@ -96,8 +200,8 @@ function takeChest(item){
     let thing = character.player.chest[item];
     if (thing.weight+character.player.weightLoad<=character.player.weightLimit){
         character.player.chest.pop(thing);
-        socket.emit('chest change',character.player.chest);
         character.player.backpack.push(thing);
+        socket.emit('chest change',character.player.chest);
         socket.emit('backpack change',character.player.backpack);
         showChest();
     } else {
@@ -107,8 +211,8 @@ function takeChest(item){
 function putChest(item){
     let thing = character.player.backpack[item];
     character.player.backpack.pop(thing);
+    character.player.chest.push(thing);
     socket.emit('backpack change',character.player.backpack);
-    character.player.backpack.push(thing);
     socket.emit('chest change',character.player.chest);
     showChest();
 }
@@ -227,8 +331,8 @@ socket.on('player created', data => {
 //GAME RUNTIME ENGINES FOR INPUT OUTPUT
 //Keypress Event Handling
 document.onkeydown = function(event){
+    NPCBox.pop();
     if(event.keyCode === 68){  //d
-        character.player.doing = "Walking";
         socket.emit('key press',{inputDir:'right', state:true, id:character.id});
     }if (event.keyCode === 83){ //s
         character.player.doing = "Walking";
@@ -248,20 +352,14 @@ socket.on('draw player', data => {
     let ctx = canvas.getContext('2d');
     let tile =12;
     for(var i=0; i < data.pack.length; i++){
-        console.log(data.pack);
         ctx.font = "12pt Monospace";
         if (!(data.id===character.id)){
             ctx.fillStyle = "white";
         } else {
-            character.player = data.pack[i];
+            character.player = data.pack[i].player;
             ctx.fillStyle = "yellow";
-            character.player.xpos = data.pack[i].xpos;
-            character.player.ypos = data.pack[i].ypos;
-            character.player.stats = data.pack[i].stats;
-            character.player.message = data.pack[i].message;
-            character.player.action = data.pack[i].action;
         }
-        ctx.fillText('P',data.pack[i].xpos*tile,data.pack[i].ypos*tile);
+        ctx.fillText('P',data.pack[i].player.xpos*tile,data.pack[i].player.ypos*tile);
     }
 });
 //Conversations
@@ -301,7 +399,7 @@ function showPoi(POI) {
 }
 //Player Map Interaction and Actions
 socket.on('action', data => {
-    console.log('triggered an action:',data[0].action);
+    console.log('triggered an action:',data[0]);
     character.player.doing = data[0].message;
     if (data[0].action==="talking"){
         NPCBox.push(data[0].npc);
@@ -314,3 +412,5 @@ socket.on('action', data => {
         showChest();
     }
 });
+
+//end

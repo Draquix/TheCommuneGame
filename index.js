@@ -72,15 +72,16 @@ io.on('connection', socket => {
     });
     socket.on('gear change left', data => {
         console.log(data[0]);
-        player.gear.left.push(data);
+        player.gear.left.push(data[0]);
         player.gearWeightCalc();
     });
     socket.on('gear change right',data =>{
         console.log(data[0]);
-        player.gear.right.push(data);
+        player.gear.right.push(data[0]);
         player.gearWeightCalc();
     });
     socket.on('gear change head',data => {
+        console.log('head object',data)
         player.gear.head.push(data[0]);
         player.gearWeightCalc();
     });

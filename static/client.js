@@ -61,7 +61,7 @@ function equip(num){
     if (item.type==='tool' && character.player.gear.right.length===0){
         console.log('equipping to right hand');
         character.player.gear.right.push(item);
-        character.player.backpack.pop(num);
+        character.player.backpack.splice(num,1);
         console.log('postpop',item);
         socket.emit('backpack change',character.player.backpack);
 
@@ -70,7 +70,7 @@ function equip(num){
     } else if (item.type==='tool' && character.player.gear.right.length>0 &&character.player.gear.left.length===0){
         console.log("equipping to left hand");
         character.player.gear.left.push(item);
-        character.player.backpack.pop(num);
+        character.player.backpack.splice(num,1);
         socket.emit('backpack change',character.player.backpack);
         socket.emit('gear change left',character.player.gear.left);
         displayEquipment();
@@ -80,7 +80,7 @@ function equip(num){
     if (item.type==='gear'){
         if (item.location==='head' && character.player.gear.head.length===0){
             character.player.gear.head.push(item);
-            character.player.backpack.pop(num);
+            character.player.backpack.splice(num,1);
             socket.emit('backpack change',character.player.backpack);
             socket.emit('gear change head',character.player.gear.head);
             displayEquipment();

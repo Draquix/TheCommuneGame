@@ -109,6 +109,12 @@ io.on('connection', socket => {
         player.gear.feet.push(data[0]);
         player.gearWeightCalc();
     });
+    //Random number generator needs be server side to avoid client hacks
+    socket.on('RNG', ()=> {
+        let rng = Math.random();
+        console.log(rng);
+        socket.emit('rng', {num:rng});
+    });
 
     //below receives the keypress for w,a,s,d movement.
     socket.on('key press', data => {
@@ -211,10 +217,19 @@ setInterval(function() {
                 let socket = SOCKET_LIST[i];
                 socket.emit('action',pack);
             }
-            if(player.doing="Banking with chest storage."){
+            if(player.doing==="Banking with chest storage."){
                 pack.push({
                     action:'chest',
                     message:player.doing,
+                });
+                player.action = false;
+                let socket = SOCKET_LIST[i];
+                socket.emit('action',pack);
+            }
+            if(player.doing==="Cooking at a fire."){
+                pack.push({
+                    action:'fire',
+                    message:player.doing
                 });
                 player.action = false;
                 let socket = SOCKET_LIST[i];
@@ -298,6 +313,11 @@ function Player (name, passphrase, id){
             right: []
         }
     };
+    this.furnace = {
+        type1: [],
+        type2: [],
+        product: []
+    };
     this.weightLimit = 20 + 10*this.stats.str;
     this.weightLoad = 0;
     this.map = 0;
@@ -357,8 +377,10 @@ function loadChest(chest){
     for(var i=0;i<3;i++){
         let ore1 = new Ore("copper ore",.5,.34,'copper');
         let ore2 = new Ore("tin ore",.5,.34,'tin');
+        let fish1 = new Food("gold fish",.3,.3,1,3);
         chest.push(ore1);
         chest.push(ore2);
+        chest.push(fish1);
     }
 }
 //Basic Items
@@ -382,6 +404,14 @@ function Gear (name,weight,stats,mods,value,location,type){
     this.value = value;
     this.location = location;
     this.type = type;
+}
+function Food (name,weight,diff,lvl,hp){
+    this.name = name;
+    this.type = 'raw'
+    this.weight = weight;
+    this.diff = diff;
+    this.lvl = lvl;
+    this.hp = hp;
 }
 
 // GAME CONTENT DATA - Here is stored the maps and NPCs and other such static data.

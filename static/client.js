@@ -21,6 +21,7 @@ let character = {};
 let NPCBox =[];
 let MapBox = [];
 let LegendBox = [];
+let skillcheck = 0;
 //GAME DISPLAY FUNCTIONS
 //Character Stats Display
 function displayCharacter(){
@@ -101,6 +102,12 @@ function displayInv(){
         }
         if (item.type==='gear'){
             itemDisplay.innerHTML += `<a href="javascript:equip(${i});"> Wear Gear </a>`;
+        }
+        if (item.type==='raw' && character.player.doing==="Cooking at a fire."){
+            itemDisplay.innerHTML += `<a href="javascript:cook(${i});"> Cook </a>`;
+        }
+        if (item.type==='edible'){
+            itemDisplay.innerHTML += `<a href="javascript:eat(${i});"> Eat </a>`;
         }
         display.appendChild(itemDisplay);
     }
@@ -337,6 +344,7 @@ socket.on('player created', data => {
 //Keypress Event Handling
 document.onkeydown = function(event){
     NPCBox.pop();
+    character.player.doing = 'Nothing';
     if(event.keyCode === 68){  //d
         socket.emit('key press',{inputDir:'right', state:true, id:character.id});
     }if (event.keyCode === 83){ //s
@@ -350,6 +358,7 @@ document.onkeydown = function(event){
         socket.emit('key press', {inputDir:'up',state:true, id:character.id});
     }
 }
+
 //Drawing Screen
 socket.on('draw player', data => {
     draw();
@@ -402,6 +411,35 @@ function showPoi(POI) {
     message.innerHTML = POI.message[0];
     actionPanel.appendChild(message);
 }
+//Cooking at Campfire and Eating Food
+function showFire(){
+    console.log('cooking rn');
+    displayInv();
+}
+function cook(inv){
+    console.log('cooking a: ',character.player.backpack[inv]);
+    socket.emit('RNG');
+    if (skillcheck>character.player.backpack[inv].diff){
+        let msg = document.createElement('p');
+        character.player.backpack[inv].type = 'edible';
+        let name = 'A cooked ' + character.player.backpack[inv].name;
+        console.log(character.player.backpack);
+        character.player.backpack[inv].name = name;
+        msg.innerHTML = `You successfully cooked the ${character.player.backpack[inv].name}!`;
+        scrolltips.appendChild(msg);
+        socket.emit('backpack change',character.player.backpack);
+    } else {
+        let msg = document.createElement('p');
+        msg.innerHTML = `You burnt the ${character.player.backpack[inv].name}, so throw it out.`;
+        character.player.backpack.splice(inv,1);
+        socket.emit('backpack change',character.player.backpack);
+        scrolltips.appendChild(msg);
+    }
+    displayInv();
+}
+function eat(inv){
+    console.log('eating a: ',character.player.backpack[inv]);
+}
 //Player Map Interaction and Actions
 socket.on('action', data => {
     console.log('triggered an action:',data[0]);
@@ -416,6 +454,13 @@ socket.on('action', data => {
     if (data[0].action==="chest"){
         showChest();
     }
+    if (data[0].action==='fire'){
+        showFire();
+    }
 });
-
+//RANDOM NUMBER GENERATOR from server
+socket.on('rng', data =>{
+    console.log('random num:',data.num);
+    skillcheck = data.num;
+});
 //end

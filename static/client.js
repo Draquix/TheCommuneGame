@@ -60,33 +60,34 @@ function equip(num){
     let item = character.player.backpack[num];
     console.log("attempting to equip: ",item);
     if (item.type==='tool' && character.player.gear.right.length===0){
-        console.log('equipping to right hand');
+        console.log('equipping to right hand:',item);
         character.player.gear.right.push(item);
         character.player.backpack.splice(num,1);
-        console.log('postpop',item);
+        console.log('postpop',character.player.gear);
         socket.emit('backpack change',character.player.backpack);
-
-        socket.emit('gear change right',character.player.gear.right);
+        socket.emit('gear change',character.player.gear);
         displayEquipment();
     } else if (item.type==='tool' && character.player.gear.right.length>0 &&character.player.gear.left.length===0){
         console.log("equipping to left hand");
         character.player.gear.left.push(item);
         character.player.backpack.splice(num,1);
         socket.emit('backpack change',character.player.backpack);
-        socket.emit('gear change left',character.player.gear.left);
+        socket.emit('gear change',character.player.gear.left);
         displayEquipment();
     } else if (item.type==='tool' && character.player.gear.left.length>0 && character.player.gear.left.length>0){
         alert("You don't have any free hands...");
     }
     if (item.type==='gear'){
-        if (item.location==='head' && character.player.gear.head.length===0){
+        if (item.location==='head'){
+            if (character.player.gear.head.length>0){
+            alert("You're already wearing something on your head.");
+            } else {
             character.player.gear.head.push(item);
             character.player.backpack.splice(num,1);
             socket.emit('backpack change',character.player.backpack);
-            socket.emit('gear change head',character.player.gear.head);
+            socket.emit('gear change',character.player.gear);
             displayEquipment();
-        } else {
-            alert("You're already wearing something on your head.");
+            }
         }
     }
     displayInv();
@@ -181,29 +182,36 @@ function displayEquipment(){
     actionPanel.appendChild(doneButt);
 }
 function clearAction (){
-     actionPanel.innerHTML = "";
+    actionPanel.innerHTML = "";
 }  //below unequips stuff
 function removeRight(){
-    character.player.backpack.push(character.player.gear.right[0]);
+    let item = character.player.gear.right[0];
+    character.player.backpack.push(item);
     character.player.gear.right.pop();
     socket.emit('backpack change',character.player.backpack);
     socket.emit('gear change',character.player.gear);
+    displayEquipment();
+    displayInv();
 }
 function removeLeft(){
-    character.player.backpack.push(character.player.gear.left[0]);
+    let item = character.player.gear.left[0];
+    character.player.backpack.push(item);
     character.player.gear.left.pop();
     socket.emit('backpack change',character.player.backpack);
     socket.emit('gear change',character.player.gear);
+    displayEquipment();
+    displayInv();
 }
 function removeHead(){
-    console.log('player now',character.player);
-    let gear = character.player.gear.head[0];
-    console.log('unequipping head: ',gear);
-    character.player.backpack.push(gear);
+    let item = character.player.gear.head[0];
+    character.player.backpack.push(item);
     character.player.gear.head.pop();
     socket.emit('backpack change',character.player.backpack);
     socket.emit('gear change',character.player.gear);
+    displayEquipment();
+    displayInv();
 }
+
 //Chest display function, and moving items between
 function showChest(){
     actionPanel.innerHTML = "";

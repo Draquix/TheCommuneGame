@@ -72,9 +72,9 @@ io.on('connection', socket => {
         player.chest=data;
     });
     socket.on('gear change',data => {
-            console.log('head object',data)
+            console.log('gear object',data)
             player.gear=data;
-            player.gearWeightCalc();
+           // player.gearWeightCalc();
         });
     // socket.on('gear change left', data => {
     //     console.log(data[0]);
@@ -484,7 +484,6 @@ NPCBox.push(NPC0);
 NPCBox.push(NPC1);
 POIBox.push(POI0);
 POIBox.push(POI1);
-console.log(NPCBox[0]);
 //With all the files loaded, the below statement causes the server to boot up and listen for client connections.
 server.listen(port, () => {
     console.log('server listening on port: ', port);

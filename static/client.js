@@ -94,19 +94,18 @@ function equip(num){
 function displayInv(){
     display.innerHTML = "";
     for(i in character.player.backpack){
-        let item = character.player.backpack[i];
         let itemDisplay = document.createElement('p');
-        itemDisplay.innerHTML = `* ${item.name} weighing ${item.weight} kgs.`;
-        if (item.type==='tool'){
+        itemDisplay.innerHTML = `* ${character.player.backpack[i].name} weighing ${character.player.backpack[i].weight} kgs.`;
+        if (character.player.backpack[i].type==='tool'){
             itemDisplay.innerHTML += `<a href="javascript:equip(${i});"> Hold Tool </a>`;
         }
-        if (item.type==='gear'){
+        if (character.player.backpack[i].type==='gear'){
             itemDisplay.innerHTML += `<a href="javascript:equip(${i});"> Wear Gear </a>`;
         }
-        if (item.type==='raw' && character.player.doing==="Cooking at a fire."){
+        if (character.player.backpack[i].type==='raw' && character.player.doing==="Cooking at a fire."){
             itemDisplay.innerHTML += `<a href="javascript:cook(${i});"> Cook </a>`;
         }
-        if (item.type==='edible'){
+        if (character.player.backpack[i].type==='edible'){
             itemDisplay.innerHTML += `<a href="javascript:eat(${i});"> Eat </a>`;
         }
         display.appendChild(itemDisplay);

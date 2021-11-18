@@ -182,6 +182,27 @@ function displayEquipment(){
 }
 function clearAction (){
      actionPanel.innerHTML = "";
+}  //below unequips stuff
+function removeRight(){
+    character.player.backpack.push(character.player.gear.right[0]);
+    character.player.gear.right.pop();
+    socket.emit('backpack change',character.player.backpack);
+    socket.emit('gear change',character.player.gear);
+}
+function removeLeft(){
+    character.player.backpack.push(character.player.gear.left[0]);
+    character.player.gear.left.pop();
+    socket.emit('backpack change',character.player.backpack);
+    socket.emit('gear change',character.player.gear);
+}
+function removeHead(){
+    console.log('player now',character.player);
+    let gear = character.player.gear.head[0];
+    console.log('unequipping head: ',gear);
+    character.player.backpack.push(gear);
+    character.player.gear.head.pop();
+    socket.emit('backpack change',character.player.backpack);
+    socket.emit('gear change',character.player.gear);
 }
 //Chest display function, and moving items between
 function showChest(){

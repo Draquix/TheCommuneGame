@@ -62,53 +62,59 @@ io.on('connection', socket => {
     });
     //if inventory is added to or taken from in client, adjust weight and player contents
     socket.on('backpack change', data => {
+        console.log('current backpack: ',data);
         player.backpack=data;
-        player.weightCalc();
+        //player.weightCalc();
         console.log('weightload',player.weightLoad);
     });
     //if chest is added to or taken from adjust contents
     socket.on('chest change',data =>{
         player.chest=data;
     });
-    socket.on('gear change left', data => {
-        console.log(data[0]);
-        player.gear.left.push(data[0]);
-        player.gearWeightCalc();
-    });
-    socket.on('gear change right',data =>{
-        console.log(data[0]);
-        player.gear.right.push(data[0]);
-        player.gearWeightCalc();
-    });
-    socket.on('gear change head',data => {
-        console.log('head object',data)
-        player.gear.head.push(data[0]);
-        player.gearWeightCalc();
-    });
-    socket.on('gear change torso', data => {
-        player.gear.torso.push(data[0]);
-        player.gearWeightCalc();
-    });
-    socket.on('gear change legs',data =>{
-        player.gear.torso.push(data[0]);
-        player.gearWeightCalc();
-    });
-    socket.on('gear change back',data => {
-        player.gear.back.push(data[0]);
-        player.gearWeightCalc();
-    });
-    socket.on('gear change hands', data => {
-        player.gear.hands.push(data[0]);
-        player.gearWeightCalc();
-    });
-    socket.on('gear change neck',data =>{
-        player.gear.neck.push(data[0]);
-        player.gearWeightCalc();
-    });
-    socket.on('gear change feet',data => {
-        player.gear.feet.push(data[0]);
-        player.gearWeightCalc();
-    });
+    socket.on('gear change',data => {
+            console.log('head object',data)
+            player.gear=data;
+            player.gearWeightCalc();
+        });
+    // socket.on('gear change left', data => {
+    //     console.log(data[0]);
+    //     player.gear.left.push(data[0]);
+    //     player.gearWeightCalc();
+    // });
+    // socket.on('gear change right',data =>{
+    //     console.log(data[0]);
+    //     player.gear.right.push(data[0]);
+    //     player.gearWeightCalc();
+    // });
+    // socket.on('gear change head',data => {
+    //     console.log('head object',data)
+    //     player.gear.head.push(data[0]);
+    //     player.gearWeightCalc();
+    // });
+    // socket.on('gear change torso', data => {
+    //     player.gear.torso.push(data[0]);
+    //     player.gearWeightCalc();
+    // });
+    // socket.on('gear change legs',data =>{
+    //     player.gear.torso.push(data[0]);
+    //     player.gearWeightCalc();
+    // });
+    // socket.on('gear change back',data => {
+    //     player.gear.back.push(data[0]);
+    //     player.gearWeightCalc();
+    // });
+    // socket.on('gear change hands', data => {
+    //     player.gear.hands.push(data[0]);
+    //     player.gearWeightCalc();
+    // });
+    // socket.on('gear change neck',data =>{
+    //     player.gear.neck.push(data[0]);
+    //     player.gearWeightCalc();
+    // });
+    // socket.on('gear change feet',data => {
+    //     player.gear.feet.push(data[0]);
+    //     player.gearWeightCalc();
+    // });
     //Random number generator needs be server side to avoid client hacks
     socket.on('RNG', ()=> {
         let rng = Math.random();

@@ -86,6 +86,8 @@ function equip(num){
             character.player.backpack.splice(num,1);
             socket.emit('backpack change',character.player.backpack);
             socket.emit('gear change',character.player.gear);
+            character.player.stats.def += character.player.gear.head[0].mods;
+            socket.emit('stat change',character.player.stats)
             displayEquipment();
             }
         }

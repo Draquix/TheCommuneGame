@@ -72,10 +72,13 @@ io.on('connection', socket => {
         player.chest=data;
     });
     socket.on('gear change',data => {
-            console.log('gear object',data)
-            player.gear=data;
-           // player.gearWeightCalc();
-        });
+        console.log('gear object',data)
+        player.gear=data;
+        // player.gearWeightCalc();
+    });
+    socket.on('stat change', data => {
+        player.stats=data;
+    });
     // socket.on('gear change left', data => {
     //     console.log(data[0]);
     //     player.gear.left.push(data[0]);

@@ -60,15 +60,12 @@ function equip(num){
     let item = character.player.backpack[num];
     console.log("attempting to equip: ",item);
     if (item.type==='tool' && character.player.gear.right.length===0){
-        console.log('equipping to right hand:',item);
         character.player.gear.right.push(item);
         character.player.backpack.splice(num,1);
-        console.log('postpop',character.player.gear);
         socket.emit('backpack change',character.player.backpack);
         socket.emit('gear change',character.player.gear);
         displayEquipment();
     } else if (item.type==='tool' && character.player.gear.right.length>0 &&character.player.gear.left.length===0){
-        console.log("equipping to left hand");
         character.player.gear.left.push(item);
         character.player.backpack.splice(num,1);
         socket.emit('backpack change',character.player.backpack);
@@ -191,7 +188,7 @@ function removeRight(){
     character.player.backpack.push(item);
     character.player.gear.right.pop();
     socket.emit('backpack change',character.player.backpack);
-    socket.emit('gear change right',character.player.gear);
+    socket.emit('gear change',character.player.gear);
     displayEquipment();
     displayInv();
 }
@@ -210,7 +207,7 @@ function removeHead(){
     character.player.gear.head.pop();
     socket.emit('backpack change',character.player.backpack);
     socket.emit('gear change',character.player.gear);
-    character.player.stats.def -= character.player.gear.head[0].mods;
+    character.player.stats.def -= item.mods;
     socket.emit('stat change',character.player.stats);
     displayEquipment();
     displayInv();

@@ -60,33 +60,33 @@ function equip(num){
     let item = character.player.backpack[num];
     console.log("attempting to equip: ",item);
     if (item.type==='tool' && character.player.gear.right.length===0){
-        console.log('equipping to right hand');
         character.player.gear.right.push(item);
         character.player.backpack.splice(num,1);
-        console.log('postpop',item);
         socket.emit('backpack change',character.player.backpack);
-
-        socket.emit('gear change right',character.player.gear.right);
+        socket.emit('gear change',character.player.gear);
         displayEquipment();
     } else if (item.type==='tool' && character.player.gear.right.length>0 &&character.player.gear.left.length===0){
-        console.log("equipping to left hand");
         character.player.gear.left.push(item);
         character.player.backpack.splice(num,1);
         socket.emit('backpack change',character.player.backpack);
-        socket.emit('gear change left',character.player.gear.left);
+        socket.emit('gear change',character.player.gear);
         displayEquipment();
     } else if (item.type==='tool' && character.player.gear.left.length>0 && character.player.gear.left.length>0){
         alert("You don't have any free hands...");
     }
     if (item.type==='gear'){
-        if (item.location==='head' && character.player.gear.head.length===0){
+        if (item.location==='head'){
+            if (character.player.gear.head.length>0){
+            alert("You're already wearing something on your head.");
+            } else {
             character.player.gear.head.push(item);
             character.player.backpack.splice(num,1);
             socket.emit('backpack change',character.player.backpack);
-            socket.emit('gear change head',character.player.gear.head);
+            socket.emit('gear change',character.player.gear);
+            character.player.stats.def += character.player.gear.head[0].mods;
+            socket.emit('stat change',character.player.stats)
             displayEquipment();
-        } else {
-            alert("You're already wearing something on your head.");
+            }
         }
     }
     displayInv();
@@ -181,15 +181,44 @@ function displayEquipment(){
     actionPanel.appendChild(doneButt);
 }
 function clearAction (){
-     actionPanel.innerHTML = "";
+    actionPanel.innerHTML = "";
+}  //below unequips stuff
+function removeRight(){
+    let item = character.player.gear.right[0];
+    character.player.backpack.push(item);
+    character.player.gear.right.pop();
+    socket.emit('backpack change',character.player.backpack);
+    socket.emit('gear change',character.player.gear);
+    displayEquipment();
+    displayInv();
 }
+function removeLeft(){
+    let item = character.player.gear.left[0];
+    character.player.backpack.push(item);
+    character.player.gear.left.pop();
+    socket.emit('backpack change',character.player.backpack);
+    socket.emit('gear change',character.player.gear);
+    displayEquipment();
+    displayInv();
+}
+function removeHead(){
+    let item = character.player.gear.head[0];
+    character.player.backpack.push(item);
+    character.player.gear.head.pop();
+    socket.emit('backpack change',character.player.backpack);
+    socket.emit('gear change',character.player.gear);
+    character.player.stats.def -= item.mods;
+    socket.emit('stat change',character.player.stats);
+    displayEquipment();
+    displayInv();
+}
+
 //Chest display function, and moving items between
 function showChest(){
     actionPanel.innerHTML = "";
     for(let i = 0;i<character.player.chest.length;i++){
-        let item = character.player.chest[i];
         let itemDisplay = document.createElement('p');
-        itemDisplay.innerHTML = `* ${item.name} weighing ${item.weight} kgs. <a href="javascript:takeChest(${i});"> Take </a>`;
+        itemDisplay.innerHTML = `* ${character.player.chest[i].name} weighing ${character.player.chest[i].weight} kgs. <a href="javascript:takeChest(${i});"> Take </a>`;
         actionPanel.appendChild(itemDisplay);
     }
     let doneButt = document.createElement('p');
@@ -197,9 +226,8 @@ function showChest(){
     actionPanel.appendChild(doneButt);
     display.innerHTML = "";
     for(let i = 0;i < character.player.backpack.length;i++){
-        let item = character.player.backpack[i];
         let itemDisplay = document.createElement('p');
-        itemDisplay.innerHTML = `* ${item.name} weighing ${item.weight} kgs. <a href="javascript:putChest(${i});"> Put </a>`;
+        itemDisplay.innerHTML = `* ${character.player.backpack[i].name} weighing ${character.player.backpack[i].weight} kgs. <a href="javascript:putChest(${i});"> Put </a>`;
         display.appendChild(itemDisplay);
     }
 }
@@ -208,10 +236,9 @@ function doneChest(){
     displayCharacter();
 }
 function takeChest(item){
-    let thing = character.player.chest[item];
-    if (thing.weight+character.player.weightLoad<=character.player.weightLimit){
-        character.player.chest.pop(thing);
-        character.player.backpack.push(thing);
+    if (character.player.chest[item].weight+character.player.weightLoad<=character.player.weightLimit){
+        character.player.backpack.push(character.player.chest[item]);
+        character.player.chest.splice(item,1);
         socket.emit('chest change',character.player.chest);
         socket.emit('backpack change',character.player.backpack);
         showChest();
@@ -220,9 +247,8 @@ function takeChest(item){
     }
 }
 function putChest(item){
-    let thing = character.player.backpack[item];
-    character.player.backpack.pop(thing);
-    character.player.chest.push(thing);
+    character.player.chest.push(character.player.backpack[item]);
+    character.player.backpack.splice(item,1)
     socket.emit('backpack change',character.player.backpack);
     socket.emit('chest change',character.player.chest);
     showChest();

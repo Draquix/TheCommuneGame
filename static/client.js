@@ -295,7 +295,7 @@ function draw(){
                 ctx.fillStyle = "white";
                 ctx.fillText('=',(xpos*(j)*tile)+1, (ypos*(i+1)*tile)+1);
             }
-            if (map[i][j]==="1"||map[i][j]==="2"){
+            if (map[i][j]==="1"||map[i][j]==="2"||map[i][j]==="0"){
                 ctx.fillStyle = "brown";
                 ctx.fillText('+', (xpos*j*tile)+1,(ypos*(i+1)*tile)+1);
             }

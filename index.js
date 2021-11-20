@@ -203,7 +203,7 @@ setInterval(function() {
         let player = PLAYER_LIST[i];
         //if doing something perform an action
         if(player.action===true){
-            console.log('action true');
+            console.log('action true for: ', player.doing);
             if(player.doing==="Speaking to an NPC."){
                 pack.push({
                     npc:player.data[0],
@@ -244,6 +244,11 @@ setInterval(function() {
                 let socket = SOCKET_LIST[i];
                 socket.emit('action',pack);
             }
+            if(player.doing==="Changing Map."){
+                console.log('map change triggered action tick');
+                player.map = player.data[0].map;
+                player.action = false;
+            }
         }
     }
 },1500);
@@ -272,6 +277,12 @@ function collisionMessage(tile){
     if(tile==="&"){
         return "Cooking at a fire.";
     }
+    for (let i = 0; i < 10; i++){
+        let n = i.toString();
+        if(tile===n){
+            return "Changing Map.";
+        }
+    }
 }
 function collisionData(tile,map,x,y,id){
     console.log('colliding running');
@@ -289,6 +300,12 @@ function collisionData(tile,map,x,y,id){
             if((LegendBox[map].coordPOI[i][0]===x-1||LegendBox[map].coordPOI[i][0]===x||LegendBox[map].coordPOI[i][0]==x+2||LegendBox[map].coordPOI[i][0]===x+1)&&(LegendBox[map].coordPOI[i][1]===y-1||LegendBox[map].coordPOI[i][1]===y||LegendBox[map].coordPOI[i][1]===y+1||LegendBox[map].coordPOI[i][1][y+2])){
                 return POIBox[i];
             }
+        }
+    }
+    for (let i = 0; i < 10; i++){
+        let n = i.toString();
+        if (tile===n){
+            return {map:i};
         }
     }
 }
@@ -510,19 +527,34 @@ const NPC1 = {
     ],
     questBool:true
 }
+const NPC2 = {
+    name: "Fredderick",
+    conversations:[
+        {message:"Hey there traveler o/... Do you fancy yourself a fisher?",choice:["Yes, but don't know how...","No, not at all. Worms are gross."],answerI:[1,2],end:false},
+        {message:"Well, it's as simple as holding a fishing pole and moving towards the water!",choice:["Thanks!","Where do I get a fishing pole?"], answerI:[3,4],end:false},
+        {message:"I guess it's not for everyone...",end:true},
+        {message:"You're welcome, come back anytime!", end:true},
+        {message:"It's a basic craft, you can make one out of a log at the crafting station... start with easy soft wood like fir.",end:true}
+    ],
+    questBool:false
+}
 //POIs:  Points of Interest are like signposts, when the character runs into them it displays a message
 // about the contents of the nearby game world.
 const POI0 = {message:['Here is the barracks forge and anvil.  The red "=" forge can be used to refine metal ores into ingots to be made into gear.  The "-" anvil along with a hammer can process those ingots into items']};
 const POI1 = {message:['The red "&" fire is where you can cook basic meats into edible food to heal with.']};
-
+const POI2 = {message:['These barracks hold a storage chest and a forge and fire, feel free to enter and work on your skills.']};
 //Game data is pushed to Global Variables that were established as containers to keep the game world
 //static as the players interact with it and change their own unique experience.
 MapBox.push(map0);
+MapBox.push(map1);
 LegendBox.push(legend0);
+LegendBox.push(legend1);
 NPCBox.push(NPC0);
 NPCBox.push(NPC1);
+NPCBox.push(NPC2);
 POIBox.push(POI0);
 POIBox.push(POI1);
+POIBox.push(POI2);
 //With all the files loaded, the below statement causes the server to boot up and listen for client connections.
 server.listen(port, () => {
     console.log('server listening on port: ', port);

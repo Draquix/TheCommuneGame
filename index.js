@@ -319,8 +319,17 @@ function Player (name, passphrase, id){
     this.xpos = 2;
     this.ypos = 2;
     this.stats = {
-        str:1,dex:1,def:1,hp:10,mHp:10,coin:100,
-        mine:1,forge:1,gather:1,fish:1,cook:1,chop:1
+        str:{lvl:1,xp:0,tnl:50},
+        dex:{lvl:1,xp:0,tnl:50},
+        def:{lvl:1,xp:0,tnl:50},
+        hp:{lvl:10,xp:0,tnl:50},mHp:10,
+        coin:100,
+        mine:{lvl:1,xp:0,tnl:50},
+        forge:{lvl:1,xp:0,tnl:50},
+        gather:{lvl:1,xp:0,tnl:50},
+        fish:{lvl:1,xp:0,tnl:50},
+        cook:{lvl:1,xp:0,tnl:50},
+        chop:{lvl:1,xp:0,tnl:50}
     };
     this.chest = [];
     this.backpack = [];
@@ -388,7 +397,6 @@ function Player (name, passphrase, id){
         // }
     }
     console.log("Player created by name of: ", this.name);
-    console.log("action:",this.action);
 }
 //Load Inventory of Player functions
 function loadInv(backpack){
@@ -401,9 +409,9 @@ function loadInv(backpack){
 }
 function loadChest(chest){
     for(var i=0;i<3;i++){
-        let ore1 = new Ore("copper ore",.5,.34,'copper');
-        let ore2 = new Ore("tin ore",.5,.34,'tin');
-        let fish1 = new Food("gold fish",.3,.3,1,3);
+        let ore1 = new Ore("copper ore",.5,.34,'copper',5);
+        let ore2 = new Ore("tin ore",.5,.34,'tin',5);
+        let fish1 = new Food("gold fish",.3,.3,1,3,10);
         chest.push(ore1);
         chest.push(ore2);
         chest.push(fish1);
@@ -416,11 +424,12 @@ function Tool (name,weight,type,resource){
     this.type = type;
     this.resource = resource;
 }
-function Ore (name,weight,purity,type){
+function Ore (name,weight,purity,type,xp){
     this.name = name;
     this.weight = weight;
     this.purity = purity;
     this.type = type;
+    this.xp = xp;
 }
 function Gear (name,weight,stats,mods,value,location,type){
     this.name = name;
@@ -431,13 +440,14 @@ function Gear (name,weight,stats,mods,value,location,type){
     this.location = location;
     this.type = type;
 }
-function Food (name,weight,diff,lvl,hp){
+function Food (name,weight,diff,lvl,hp,xp){
     this.name = name;
     this.type = 'raw'
     this.weight = weight;
     this.diff = diff;
     this.lvl = lvl;
     this.hp = hp;
+    this.xp = xp;
 }
 
 // GAME CONTENT DATA - Here is stored the maps and NPCs and other such static data.

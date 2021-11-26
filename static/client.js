@@ -31,25 +31,25 @@ function displayCharacter(){
     charname.innerHTML = character.player.name;
     display.appendChild(charname);
     hitpoint = document.createElement('p');
-    let percent = (character.player.stats.hp.xp/character.player.stats.hp.tnl)*100;
+    let percent = (character.player.stats.hp.xp/character.player.stats.hp.diff)*100;
     hitpoint.innerHTML = `HP: ${character.player.stats.hp.lvl} / ${character.player.stats.mHp} --with ${percent}% to the next level.`;
     display.appendChild(hitpoint);
     statline = document.createElement('p');
-    let strPercent = (character.player.stats.str.xp/character.player.stats.str.tnl)*100;
-    let dexPercent = (character.player.stats.dex.xp/character.player.stats.dex.tnl)*100;
-    let defPercent = (character.player.stats.def.xp/character.player.stats.def.tnl)*100;
+    let strPercent = (character.player.stats.str.xp/character.player.stats.str.diff)*100;
+    let dexPercent = (character.player.stats.dex.xp/character.player.stats.dex.diff)*100;
+    let defPercent = (character.player.stats.def.xp/character.player.stats.def.diff)*100;
     statline.innerHTML = `Strength: ${character.player.stats.str.lvl} : ${strPercent}% || Dexterity: ${character.player.stats.dex.lvl} : ${dexPercent}% || Defense: ${character.player.stats.def.lvl} : ${defPercent}%`;
     display.appendChild(statline);
     statline2 = document.createElement('p');
-    let minPercent = (character.player.stats.mine.xp/character.player.stats.mine.tnl)*100;
-    let forPercent = (character.player.stats.forge.xp/character.player.stats.forge.tnl)*100;
-    let gatPercent = (character.player.stats.gather.xp/character.player.stats.gather.tnl)*100;
+    let minPercent = (character.player.stats.mine.xp/character.player.stats.mine.diff)*100;
+    let forPercent = (character.player.stats.forge.xp/character.player.stats.forge.diff)*100;
+    let gatPercent = (character.player.stats.gather.xp/character.player.stats.gather.diff)*100;
     statline2.innerHTML = `Mining: ${character.player.stats.mine.lvl} : ${minPercent}% || Forging: ${character.player.stats.forge.lvl} : ${forPercent}% || Gathering: ${character.player.stats.gather.lvl} : ${gatPercent}%`;
     display.appendChild(statline2);
     statline3 = document.createElement('p');
-    let fisPercent = (character.player.stats.fish.xp/character.player.stats.fish.tnl)*100;
-    let cooPercent = (character.player.stats.cook.xp/character.player.stats.cook.tnl)*100;
-    let wooPercent = (character.player.stats.chop.xp/character.player.stats.chop.tnl)*100;    
+    let fisPercent = (character.player.stats.fish.xp/character.player.stats.fish.diff)*100;
+    let cooPercent = (character.player.stats.cook.xp/character.player.stats.cook.diff)*100;
+    let wooPercent = (character.player.stats.chop.xp/character.player.stats.chop.diff)*100;    
     statline3.innerHTML = `Fishing: ${character.player.stats.fish.lvl} : ${fisPercent}% || Cooking: ${character.player.stats.cook.lvl} : ${cooPercent}% || Woodchopping: ${character.player.stats.chop.lvl} : ${wooPercent}%`;
     display.appendChild(statline3);
     weightcoin = document.createElement('p');
@@ -446,6 +446,16 @@ function showPoi(POI) {
     message.innerHTML = POI.message[0];
     actionPanel.appendChild(message);
 }
+//Handling XP
+function lvlCheck(skillObj){
+    if(skillObj.xp>=skillObj.tnl){
+        skillObj.lvl++;
+        skillObj.diff = (skillObj.tnl+skillObj.tnl*1.2)-skillObj.tnl;
+        console.log('new lvl diff:', skillObj.diff);
+        skillObj.tnl += skillObj.tnl*1.2;
+    }
+    return skillObj;
+}
 //Cooking at Campfire and Eating Food
 function showFire(){
     console.log('cooking rn');
@@ -454,9 +464,14 @@ function showFire(){
 function cook(inv){
     console.log('cooking a: ',character.player.backpack[inv]);
     socket.emit('RNG');
-    if (skillcheck>character.player.backpack[inv].diff){
+    let lvlBonus = character.player.stats.cook.lvl/100;
+    console.log('just checking my mathing: ',lvlBonus);
+    if ((skillcheck+lvlBonus)>character.player.backpack[inv].diff){
         let msg = document.createElement('p');
         character.player.backpack[inv].type = 'edible';
+        character.player.stats.cook.xp += character.player.backpack[inv].xp;
+        character.player.stats.cook = lvlCheck(character.player.stats.cook);
+        socket.emit('stat change', character.player.stats);
         let name = 'A cooked ' + character.player.backpack[inv].name;
         console.log(character.player.backpack);
         character.player.backpack[inv].name = name;

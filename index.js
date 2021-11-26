@@ -320,17 +320,17 @@ function Player (name, passphrase, id){
     this.xpos = 2;
     this.ypos = 2;
     this.stats = {
-        str:{lvl:1,xp:0,tnl:50},
-        dex:{lvl:1,xp:0,tnl:50},
-        def:{lvl:1,xp:0,tnl:50},
-        hp:{lvl:10,xp:0,tnl:50},mHp:10,
+        str:{lvl:1,xp:0,tnl:50,diff:50},
+        dex:{lvl:1,xp:0,tnl:50,diff:50},
+        def:{lvl:1,xp:0,tnl:50},diff:50,
+        hp:{lvl:10,xp:0,tnl:50,diff:50},mHp:10,
         coin:100,
-        mine:{lvl:1,xp:0,tnl:50},
-        forge:{lvl:1,xp:0,tnl:50},
-        gather:{lvl:1,xp:0,tnl:50},
-        fish:{lvl:1,xp:0,tnl:50},
-        cook:{lvl:1,xp:0,tnl:50},
-        chop:{lvl:1,xp:0,tnl:50}
+        mine:{lvl:1,xp:0,tnl:50,diff:50},
+        forge:{lvl:1,xp:0,tnl:50,diff:50},
+        gather:{lvl:1,xp:0,tnl:50,diff:50},
+        fish:{lvl:1,xp:0,tnl:50,diff:50},
+        cook:{lvl:1,xp:0,tnl:50,diff:50},
+        chop:{lvl:1,xp:0,tnl:50,diff:50}
     };
     this.chest = [];
     this.backpack = [];
@@ -409,7 +409,7 @@ function loadInv(backpack){
     backpack.push(hat);
 }
 function loadChest(chest){
-    for(var i=0;i<3;i++){
+    for(var i=0;i<15;i++){
         let ore1 = new Ore("copper ore",.5,.34,'copper',5);
         let ore2 = new Ore("tin ore",.5,.34,'tin',5);
         let fish1 = new Food("gold fish",.3,.3,1,3,10);

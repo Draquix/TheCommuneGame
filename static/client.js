@@ -93,7 +93,7 @@ function equip(num){
             character.player.backpack.splice(num,1);
             socket.emit('backpack change',character.player.backpack);
             socket.emit('gear change',character.player.gear);
-            character.player.stats.def += character.player.gear.head[0].mods;
+            character.player.stats.def.lvl += character.player.gear.head[0].mods;
             socket.emit('stat change',character.player.stats)
             displayEquipment();
             }
@@ -217,7 +217,7 @@ function removeHead(){
     character.player.gear.head.pop();
     socket.emit('backpack change',character.player.backpack);
     socket.emit('gear change',character.player.gear);
-    character.player.stats.def -= item.mods;
+    character.player.stats.def.lvl -= item.mods;
     socket.emit('stat change',character.player.stats);
     displayEquipment();
     displayInv();
